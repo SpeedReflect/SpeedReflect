@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+
+
 namespace speedreflect
 {
 
@@ -16,7 +18,7 @@ namespace speedreflect
 
 	public:
 		~binary_reader();
-		binary_reader(std::wstring& path);
+		binary_reader(const std::wstring& path);
 		void read(void* dest, size_t size);
 		template <typename t> void read(t* object);
 		bool read_boolean();
@@ -34,6 +36,7 @@ namespace speedreflect
 		std::string read_string(std::int32_t maxlen);
 		std::int32_t position();
 		void position(std::int32_t at);
+		void advance(std::int32_t len);
 		std::int32_t length();
 		std::wstring path();
 		operator bool() const;

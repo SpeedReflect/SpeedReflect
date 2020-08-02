@@ -158,7 +158,6 @@
     <ClInclude Include="binary_reader.h" />
     <ClInclude Include="carbon.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Memory.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="types.h" />
   </ItemGroup>
@@ -166,7 +165,6 @@
     <ClCompile Include="binary_reader.cpp" />
     <ClCompile Include="carbon.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="Memory.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

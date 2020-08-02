@@ -27,9 +27,6 @@
     <ClInclude Include="carbon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Memory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="binary_reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -42,9 +39,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="carbon.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="binary_reader.cpp">

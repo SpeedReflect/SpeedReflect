@@ -5,7 +5,7 @@
 
 namespace speedreflect
 {
-    binary_reader::binary_reader(std::wstring& filename)
+    binary_reader::binary_reader(const std::wstring& filename)
     {
         this->is_ready_ = false;
         this->length_ = 0;
@@ -194,6 +194,7 @@ namespace speedreflect
 
         }
 
+        this->position_ = max;
         return result;
     }
 
@@ -214,7 +215,27 @@ namespace speedreflect
 
     void binary_reader::position(std::int32_t at)
     {
+        if (at > this->length_)
+        {
+
+            throw std::exception("Unable to set position beyond stream length");
+
+        }
+
         fseek(this->handle_, at, SEEK_SET);
         this->position_ = at;
+    }
+
+    void binary_reader::advance(std::int32_t len)
+    {
+        if (this->position_ + len > this->length_)
+        {
+
+            throw std::exception("Unable to set position beyond stream length");
+
+        }
+
+        fseek(this->handle_, this->position_ + len, SEEK_SET);
+        this->position_ += len;
     }
 }

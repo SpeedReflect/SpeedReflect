@@ -4,8 +4,7 @@
 #include <iostream>
 #include <filesystem>
 #include "Memory.h"
-
-
+#include "binary_reader.h"
 
 namespace stdfs = std::filesystem;
 
@@ -22,6 +21,12 @@ namespace speedreflect
 		mostwanted = 0x007C4040,
 		prostreet = 0x00828C25,
 		carbon = 0x0087E926,
+	};
+
+	enum class bin_block_id : std::uint32_t
+	{
+		cartypeinfo = 0x00034600,
+		vinylsystem = 0x8003CE00,
 	};
 
 	struct vector_offset

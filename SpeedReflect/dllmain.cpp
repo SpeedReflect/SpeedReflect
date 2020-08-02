@@ -5,6 +5,8 @@
 
 #pragma warning(disable : 4996)
 
+
+
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
                        LPVOID lpReserved
@@ -20,8 +22,6 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		AllocConsole();
 		std::freopen("CONOUT$", "w", stdout);
 		std::freopen("CONIN$", "r", stdin);
-		char c;
-		std::cin >> c;
 
 		if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::carbon))
 		{
