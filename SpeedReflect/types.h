@@ -22,18 +22,21 @@ namespace speedreflect
 		carbon = 0x0087E926,
 	};
 
-	class game
-	{
-	public:
-		virtual entry_points GameType() = 0;
-		virtual void Process() = 0;
-		virtual ~game() { }
-	};
-
 	struct vector_offset
 	{
 		std::uint32_t binkey;
 		std::uint32_t offset;
 		std::uint32_t size;
 	};
+
+	template <typename t> void set(std::uint32_t address, t value)
+	{
+		*reinterpret_cast<t*>(address) = value;
+	}
+
+	template <typename t> void jump(std::uint32_t address, t function)
+	{
+		set<std::uint8_t>(address, 0xE9);
+		set<std::uint32_t>(address + 1, std::uint32_t(function) - address - 5);
+	}
 }

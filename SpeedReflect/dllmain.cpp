@@ -20,13 +20,14 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		AllocConsole();
 		std::freopen("CONOUT$", "w", stdout);
 		std::freopen("CONIN$", "r", stdin);
+		char c;
+		std::cin >> c;
 
 		if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::carbon))
 		{
 			
 			std::cout << "Found game: [Need for Speed: Carbon]" << std::endl;
-			auto process = speedreflect::carbon();
-			process.Process();
+			speedreflect::carbon::process();
 			std::cout << "Finished processing: [Need for Speed: Carbon]" << std::endl;
 
 		}
