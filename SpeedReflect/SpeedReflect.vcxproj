@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="binary_reader.h" />
     <ClInclude Include="carbon.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Memory.h" />
@@ -162,6 +163,7 @@
     <ClInclude Include="types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="binary_reader.cpp" />
     <ClCompile Include="carbon.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="Memory.cpp" />

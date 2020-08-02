@@ -13,6 +13,8 @@ namespace stdfs = std::filesystem;
 
 namespace speedreflect
 {
+	const std::string empty = "";
+
 	enum class entry_points : std::uint32_t
 	{
 		underground1 = 0x00670CB5,
@@ -31,7 +33,11 @@ namespace speedreflect
 
 	template <typename t> void set(std::uint32_t address, t value)
 	{
+		DWORD old;
+		auto size = sizeof(value);
+		VirtualProtect((LPVOID)address, size, PAGE_EXECUTE_READWRITE, &old);
 		*reinterpret_cast<t*>(address) = value;
+		VirtualProtect((LPVOID)address, size, old, &old);
 	}
 
 	template <typename t> void jump(std::uint32_t address, t function)

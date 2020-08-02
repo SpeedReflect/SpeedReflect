@@ -80,6 +80,12 @@ namespace speedreflect::carbon
         }
     }
 
+    void make_geotable()
+    {
+        speedreflect::jump(0x007B1880, detour_geo);
+        speedreflect::jump(0x007B14BB, detour_ano);
+    }
+
     bool make_vectable(const stdfs::path& file, vector_offset** vArray, std::uint32_t* vArrayLen)
     {
         if (!stdfs::exists(file)) return false;
@@ -131,12 +137,6 @@ namespace speedreflect::carbon
         *vArray = new_mem;
         *vArrayLen = offset_entries.size();
         return true;
-    }
-
-    void make_geotable()
-    {
-        speedreflect::jump(0x007B1880, detour_geo);
-        speedreflect::jump(0x007B14BB, detour_ano);
     }
 
     void process()
