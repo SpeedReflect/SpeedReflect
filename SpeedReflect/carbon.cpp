@@ -217,9 +217,9 @@ namespace speedreflect::carbon
 
         }
 
-        speedreflect::jump(0x007B1880, detour_stream_geo1);
-        speedreflect::jump(0x007B14BB, detour_stream_geo2);
-        speedreflect::jump(0x007B1501, detour_stream_tex);
+        utils::jump(0x007B1880, detour_stream_geo1);
+        utils::jump(0x007B14BB, detour_stream_geo2);
+        utils::jump(0x007B1501, detour_stream_tex);
     }
 
     bool make_vectable(const stdfs::path& file, vector_offset** vArray, std::uint32_t* vArrayLen)
@@ -286,8 +286,8 @@ namespace speedreflect::carbon
         make_vectable(logos_path, reinterpret_cast<vector_offset**>(0x00A71250), reinterpret_cast<std::uint32_t*>(0xA71254));
 
         const unsigned int val = *reinterpret_cast<std::uint32_t*>(0x00A7AAD4);
+        utils::set(0x007CE5DF, val);
 
-        set(0x007CE5DF, val);
         load_streaming_headers(globalb_path);
     }
 }

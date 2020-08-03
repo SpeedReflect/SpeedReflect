@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "types.h"
 #include "carbon.h"
+#include "underground2.h"
 
 #pragma warning(disable : 4996)
 
@@ -56,6 +57,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		{
 
 			std::cout << "Found game: [Need for Speed: Underground 2]" << std::endl;
+			speedreflect::underground2::process();
 			std::cout << "Finished processing: [Need for Speed: Underground 2]" << std::endl;
 
 		}
