@@ -71,13 +71,12 @@ namespace speedreflect
 		}
 		void print()
 		{
-			std::printf("ID: [%d] | Size: [%d] | Offset: [%d]\n", static_cast<std::int32_t>(this->id), this->size, this->offset);
+			std::printf("ID: [0x%08X] | Size: [0x%08X] | Offset: [0x%08X]\n", static_cast<std::int32_t>(this->id), this->size, this->offset);
 		}
 	};
 
 	namespace utils
 	{
-
 		template <typename t> void set(std::uint32_t address, t value)
 		{
 			DWORD old;
@@ -93,5 +92,6 @@ namespace speedreflect
 			set<std::uint32_t>(address + 1, std::uint32_t(function) - address - 5);
 		}
 
+		std::uint32_t bin_hash(const char* hash);
 	}
 }

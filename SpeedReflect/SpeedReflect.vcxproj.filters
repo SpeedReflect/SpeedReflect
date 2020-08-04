@@ -56,5 +56,8 @@
     <ClCompile Include="ug2_progress.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="types.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -15,6 +15,7 @@ namespace speedreflect::underground2
 
     std::vector<std::string> streaming_geo_headers;
     std::vector<std::string> streaming_tex_headers;
+    std::vector<std::string> sponsor_preset_rides;
 
     struct geometry_headers
     {
@@ -30,6 +31,19 @@ namespace speedreflect::underground2
         const char* roof = "CARS\\ROOF\\GEOMETRY.BIN";
         const char* audio = "CARS\\AUDIO\\GEOMETRY.BIN";
     } geometry_table;
+
+    struct preset_rides
+    {
+        const char* chingy = "CHINGY";
+        const char* capone = "CAPONE";
+        const char* d3 = "D3";
+        const char* shinestreet = "SHINESTREET";
+        const char* davidchoe = "DAVIDCHOE";
+        const char* japantuning = "JAPANTUNING";
+        const char* snoop_dogg = "SNOOP_DOGG";
+        const char* the_doors = "THE_DOORS";
+        const char* rachel = "DDAY_PLAYER_CAR";
+    } preset_table;
 
     void make_geo_writeout(int choice)
     {
@@ -99,6 +113,35 @@ namespace speedreflect::underground2
         *reinterpret_cast<float*>(stats + 0x30) = 0.0F;
     }
 
+    std::int32_t make_preset_writeout(int* fePlayerCarDB)
+    {
+        std::int32_t result = 0; // max rides = 12
+
+        std::printf("Writing [%d] preset rides to offset [0x%08X]\n", sponsor_preset_rides.size(), (std::uint32_t)fePlayerCarDB);
+
+        for (const auto& ride : sponsor_preset_rides)
+        {
+
+            auto sponsor = "SPONSOR_" + ride;
+            auto rideKey = utils::bin_hash(ride.c_str());
+            auto sponsorKey = utils::bin_hash(sponsor.c_str());
+
+            auto ptr = &fePlayerCarDB[7 * fePlayerCarDB[9973] + 9889];
+            ptr[1] = 0;
+            ptr[2] = sponsorKey;
+            ptr[3] = 0;
+            ptr[4] = 0;
+            ptr[5] = 8;
+            result = 7 * fePlayerCarDB[9973];
+            fePlayerCarDB[result + 9895] = rideKey;
+            fePlayerCarDB[7 * fePlayerCarDB[9973] + 9893] = 1;
+            ++fePlayerCarDB[9973];
+
+        }
+
+        return result;
+    }
+
     __declspec(naked) void detour_stream_geo()
     {
         __asm
@@ -127,6 +170,38 @@ namespace speedreflect::underground2
             retn;
 
         }
+    }
+
+    __declspec(naked) void detour_preset_rides()
+    {
+        __asm
+        {
+
+            push esi;
+            call make_preset_writeout;
+            add esp, 4;
+            push 0x00516479;
+            retn;
+
+        }
+    }
+
+    void init_world_cs(block* worldcs)
+    {
+        auto count = static_cast<std::int8_t>(worldcs->size / 0x18);
+        std::printf("Located [%d] WorldChallenges...\n", count);
+
+        utils::set<std::int8_t>(0x00500E2F, count); // AddUnlockedZone (ShopDataDesc)
+        utils::set<std::int8_t>(0x00500E6F, count); // AddUnlockedZone (CareerEventData)
+        utils::set<std::int8_t>(0x00500EB0, count); // AddUnlockedZone
+        utils::set<std::int8_t>(0x00500F0B, count); // GetNextUnlockedTriggerZone
+        utils::set<std::int8_t>(0x00500F1F, count); // GetNextUnlockedTriggerZone
+        utils::set<std::int8_t>(0x0053345B, count); // PlayerCareerState::RecalcUnlockedZones
+        utils::set<std::int8_t>(0x005334BB, count); // PlayerCareerState::RecalcUnlockedZones
+        utils::set<std::int8_t>(0x0053352A, count); // PlayerCareerState::RecalcUnlockedZones
+        utils::set<std::int8_t>(0x0053355B, count); // PlayerCareerState::RecalcUnlockedZones
+        utils::set<std::int8_t>(0x0053362B, count); // PlayerCareerState::RecalcUnlockedZones
+        utils::set<std::int32_t>(0x00500F38, (std::int32_t)count); // Reset
     }
 
     void init_progress_stats(binary_reader* br, block* stages, block* races, block* showcases)
@@ -287,6 +362,7 @@ namespace speedreflect::underground2
         std::printf("Located [%d] GCareerStages...\n", stages.key_to_offset.size());
         std::printf("Located [%d] GShowcases...\n", showcases.key_to_offset.size());
 
+        init_world_cs(&worldcs);
         init_last_event(br, &stages);
         init_progress_stats(br, &stages, &races, &showcases);
     }
@@ -337,6 +413,14 @@ namespace speedreflect::underground2
         streaming_geo_headers.push_back(geometry_table.spoiler_suv);
         streaming_geo_headers.push_back(geometry_table.roof);
         streaming_geo_headers.push_back(geometry_table.audio);
+        sponsor_preset_rides.push_back(preset_table.chingy);
+        sponsor_preset_rides.push_back(preset_table.capone);
+        sponsor_preset_rides.push_back(preset_table.d3);
+        sponsor_preset_rides.push_back(preset_table.shinestreet);
+        sponsor_preset_rides.push_back(preset_table.davidchoe);
+        sponsor_preset_rides.push_back(preset_table.japantuning);
+        sponsor_preset_rides.push_back(preset_table.snoop_dogg);
+        sponsor_preset_rides.push_back(preset_table.the_doors);
     }
 
 	void process()
@@ -346,19 +430,6 @@ namespace speedreflect::underground2
 
         init_vectors();
 		load_globalb_settings(globalb_path);
-
-		utils::set<std::int8_t>(0x00500E2F, 0x7F); // AddUnlockedZone (ShopDataDesc)
-		utils::set<std::int8_t>(0x00500E6F, 0x7F); // AddUnlockedZone (CareerEventData)
-		utils::set<std::int8_t>(0x00500EB0, 0x7F); // AddUnlockedZone
-		utils::set<std::int8_t>(0x00500F0B, 0x7F); // GetNextUnlockedTriggerZone
-		utils::set<std::int8_t>(0x00500F1F, 0x7F); // GetNextUnlockedTriggerZone
-		utils::set<std::int8_t>(0x0053345B, 0x7F); // PlayerCareerState::RecalcUnlockedZones
-		utils::set<std::int8_t>(0x005334BB, 0x7F); // PlayerCareerState::RecalcUnlockedZones
-		utils::set<std::int8_t>(0x0053352A, 0x7F); // PlayerCareerState::RecalcUnlockedZones
-		utils::set<std::int8_t>(0x0053355B, 0x7F); // PlayerCareerState::RecalcUnlockedZones
-		utils::set<std::int8_t>(0x0053362B, 0x7F); // PlayerCareerState::RecalcUnlockedZones
-		utils::set<std::int32_t>(0x00500F38, 0x7F); // Reset
-        //utils::set<std::int8_t>(0x00527C62, 0x7F); // EventPile::GetRandomEvent
-
+        utils::jump(0x00516402, detour_preset_rides);
 	}
 }
