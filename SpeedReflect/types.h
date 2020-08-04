@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <iostream>
 #include <filesystem>
+#include <unordered_map>
 #include "Memory.h"
 #include "binary_reader.h"
 
@@ -50,6 +51,28 @@ namespace speedreflect
 		std::uint32_t binkey;
 		std::uint32_t offset;
 		std::uint32_t size;
+	};
+
+	struct block
+	{
+		bin_block_id id;
+		std::int32_t size;
+		std::int32_t offset;
+		std::int32_t lastpos;
+		std::unordered_map<std::uint32_t, std::int32_t> key_to_offset;
+		
+		block(bin_block_id _id) : id(_id), size(0), offset(0), lastpos(0) { }
+
+		std::int32_t get_offset_by_key(std::uint32_t key)
+		{
+			auto result = this->key_to_offset.find(key);
+			if (result == this->key_to_offset.end()) return -1;
+			else return result->second;
+		}
+		void print()
+		{
+			std::printf("ID: [%d] | Size: [%d] | Offset: [%d]\n", static_cast<std::int32_t>(this->id), this->size, this->offset);
+		}
 	};
 
 	namespace utils

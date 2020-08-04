@@ -160,6 +160,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="types.h" />
+    <ClInclude Include="ug2_progress.h" />
     <ClInclude Include="underground2.h" />
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +173,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="ug2_progress.cpp" />
     <ClCompile Include="underground2.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
