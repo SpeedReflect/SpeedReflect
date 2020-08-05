@@ -12,6 +12,11 @@ namespace speedreflect::underground2
     auto eUnloadStreamingSolidPack = (int(__cdecl*)(char*, void(*)(unsigned), unsigned))0x004941F0;
     auto eHibernateStreamingSolidPack = (int(__cdecl*)(char*))0x0048DAE0;
     auto eUnhibernateStreamingSolidPack = (int(__cdecl*)(char*))0x0048DC60;
+    auto DetermineStartingPositions = (void(__cdecl*)(int))0x005264A0;
+    auto GetTrackInfo = (char*(__cdecl*)(int))0x005D3E40;
+    
+    std::int8_t event_behavior_type = 0;
+    std::int32_t temp;
 
     std::vector<std::string> streaming_geo_headers;
     std::vector<std::string> streaming_tex_headers;
@@ -44,6 +49,24 @@ namespace speedreflect::underground2
         const char* the_doors = "THE_DOORS";
         const char* rachel = "DDAY_PLAYER_CAR";
     } preset_table;
+
+    std::int8_t GetEventBehaviorType(std::int32_t type)
+    {
+        switch (type)
+        {
+
+        case 2: return 4;
+        case 8: return 5;
+        case 16: return 3;
+        case 52: return 1;
+        case 113: return 0;
+        case 2048: return 2;
+        case 2056: return 5;
+        case 8208: return 0;
+        default: return 0;
+        
+        }
+    }
 
     void make_geo_writeout(int choice)
     {
@@ -142,14 +165,153 @@ namespace speedreflect::underground2
         return result;
     }
 
+    void custom_event_behavior(char* race)
+    {
+        char* track = GetTrackInfo(*reinterpret_cast<std::int32_t*>(0x0089E7A0));
+
+        auto key = *(std::uint32_t*)(race + 8);
+        auto id = *reinterpret_cast<std::uint16_t*>(track + 0x8A);
+        auto type = *reinterpret_cast<std::int32_t*>(track + 0x94);
+        auto icon = *reinterpret_cast<std::uint8_t*>(race + 0x34);
+        auto behavior = GetEventBehaviorType(type);
+        bool equal;
+
+        std::printf("Launching Event - BinKey: [0x%08X], TrackID: [%d], Behavior: [%d], Icon: [%d]\n", key, id, behavior, icon);
+
+        auto byte_89E7E0 = *reinterpret_cast<std::int8_t*>(0x0089E7E0);
+        auto byte_89E7E3 = *reinterpret_cast<std::int8_t*>(0x0089E7E3);
+        auto byte_89E7D8 = *reinterpret_cast<std::int8_t*>(0x0089E7D8);
+        auto byte_89E7D9 = *reinterpret_cast<std::int8_t*>(0x0089E7D9);
+
+        if (/* icon == 2 || */ (*reinterpret_cast<std::int8_t*>(0x0089E7E0) = 1, behavior))
+            *reinterpret_cast<std::int8_t*>(0x0089E7E0) = 0;
+        
+        if (/* icon == 2 || */ (equal = behavior == 2, *reinterpret_cast<std::int8_t*>(0x0089E7E3) = 1, !equal))
+            *reinterpret_cast<std::int8_t*>(0x0089E7E3) = 0;
+        
+        if (/* icon == 2 || */ (equal = behavior == 4, *reinterpret_cast<std::int8_t*>(0x0089E7D8) = 1, !equal))
+            *reinterpret_cast<std::int8_t*>(0x0089E7D8) = 0;
+        
+        if (/* icon == 2 || */ (equal = behavior == 5, *reinterpret_cast<std::int8_t*>(0x0089E7D9) = 1, !equal))
+            *reinterpret_cast<std::int8_t*>(0x0089E7D9) = 0;
+
+        *reinterpret_cast<std::int8_t*>(0x0089E7E1) = icon == 2;
+        *reinterpret_cast<std::int32_t*>(0x0089E804) = *(race + 0x7D);
+
+        switch (behavior)
+        {
+
+        case 0: case 1: case 3: temp = 0; break;
+        case 2: temp = 3; break;
+        case 4: temp = 1; break;
+        case 5: temp = 2; break;
+        default: temp = 0; break;
+        
+        }
+
+        event_behavior_type = behavior;
+    }
+
+    void custom_car_positions()
+    {
+        switch (event_behavior_type)
+        {
+
+        case 0:
+        case 1:
+        case 4:
+            DetermineStartingPositions(3);
+            break;
+
+        case 2:
+        case 5:
+            DetermineStartingPositions(2);
+            break;
+        
+        case 3:
+            DetermineStartingPositions(1);
+            break;
+        
+        default:
+            break;
+
+        }
+    }
+
+    void custom_drift_sets()
+    {
+        if (event_behavior_type == 5)
+        {
+
+            *reinterpret_cast<std::int32_t*>(0x0083AA74) = 4;
+        
+        }
+        else if (*reinterpret_cast<std::int32_t*>(0x0083AA74) == 4)
+        {
+        
+            *reinterpret_cast<std::int32_t*>(0x0083AA74) = 3;
+        
+        }
+    }
+
+    __declspec(naked) void detour_event_behavior()
+    {
+        __asm
+        {
+
+            pushad;
+            push esi;
+            call custom_event_behavior;
+            add esp, 4;
+            popad;
+            mov edi, temp;
+            mov temp, 0;
+            mov eax, 0x0083A9D8;
+            mov eax, [eax];
+            push 0x00532419;
+            retn;
+
+        }
+    }
+
+    __declspec(naked) void detour_car_positions()
+    {
+        __asm
+        {
+
+            pushad;
+            call custom_car_positions;
+            popad;
+            push 0x00532521;
+            retn;
+
+        }
+    }
+
+    __declspec(naked) void detour_drift_sets()
+    {
+        __asm
+        {
+
+            pushad;
+            call custom_drift_sets;
+            popad;
+            push 0x00532578;
+            retn;
+
+        }
+    }
+
     __declspec(naked) void detour_stream_geo()
     {
         __asm
         {
 
+            pushad;
             push ebx;
             call make_geo_writeout;
             add esp, 4;
+            popad;
             push 0x0057F103;
             retn;
 
@@ -161,10 +323,12 @@ namespace speedreflect::underground2
         __asm
         {
 
+            pushad;
             push esi;
             push eax;
             call make_progress_writeout;
             add esp, 8;
+            popad;
             xor edx, edx;
             push 0x00528F41;
             retn;
@@ -177,9 +341,11 @@ namespace speedreflect::underground2
         __asm
         {
 
+            pushad;
             push esi;
             call make_preset_writeout;
             add esp, 4;
+            popad;
             push 0x00516479;
             retn;
 
@@ -272,6 +438,50 @@ namespace speedreflect::underground2
 
         utils::jump(0x0057F0AC, detour_stream_geo);
 	}
+
+    void load_preset_rides(binary_reader* br, std::int32_t size)
+    {
+        auto count = size / 0x338;
+
+        std::printf("Located [%d] preset rides...\n", count);
+
+        int is_in_fe[8] = { 0x431440, 0x8B3090, 0x8B33D0, 0x8B3710, 0x8D85A0, 0x8D88E0, 0x8D8C20, 0x93D348 };
+
+        for (std::int32_t i = 0; i < count; ++i)
+        {
+
+            if (sponsor_preset_rides.size() == 12) break;
+
+            auto isFE = br->read_int32();
+            bool found = false;
+
+            for (std::int32_t k = 0; k < 8; ++k)
+            {
+
+                if (is_in_fe[k] == isFE) { found = true; break; }
+
+            }
+
+            if (found)
+            {
+
+                br->advance(0x24);
+                auto cname = br->read_string(0x20);
+                sponsor_preset_rides.push_back(cname);
+                br->advance(0x2F0);
+
+            }
+            else
+            {
+
+                br->advance(0x334);
+
+            }
+
+        }
+
+        utils::jump(0x00516402, detour_preset_rides);
+    }
 
     void load_gcareer_settings(binary_reader* br, std::int32_t size)
     {
@@ -386,6 +596,12 @@ namespace speedreflect::underground2
                 load_streaming_headers(&br, size);
 
             }
+            else if (id == bin_block_id::preset_rides)
+            {
+
+                load_preset_rides(&br, size);
+
+            }
             else if (id == bin_block_id::gcareer && !is_gcareer_processed)
             {
 
@@ -413,14 +629,25 @@ namespace speedreflect::underground2
         streaming_geo_headers.push_back(geometry_table.spoiler_suv);
         streaming_geo_headers.push_back(geometry_table.roof);
         streaming_geo_headers.push_back(geometry_table.audio);
-        sponsor_preset_rides.push_back(preset_table.chingy);
-        sponsor_preset_rides.push_back(preset_table.capone);
-        sponsor_preset_rides.push_back(preset_table.d3);
-        sponsor_preset_rides.push_back(preset_table.shinestreet);
-        sponsor_preset_rides.push_back(preset_table.davidchoe);
-        sponsor_preset_rides.push_back(preset_table.japantuning);
-        sponsor_preset_rides.push_back(preset_table.snoop_dogg);
-        sponsor_preset_rides.push_back(preset_table.the_doors);
+        //sponsor_preset_rides.push_back(preset_table.chingy);
+        //sponsor_preset_rides.push_back(preset_table.capone);
+        //sponsor_preset_rides.push_back(preset_table.d3);
+        //sponsor_preset_rides.push_back(preset_table.shinestreet);
+        //sponsor_preset_rides.push_back(preset_table.davidchoe);
+        //sponsor_preset_rides.push_back(preset_table.japantuning);
+        //sponsor_preset_rides.push_back(preset_table.snoop_dogg);
+        //sponsor_preset_rides.push_back(preset_table.the_doors);
+    }
+
+    __declspec(naked) void detour_gps_ples()
+    {
+        __asm
+        {
+
+            push 0x00532E02;
+            retn;
+
+        }
     }
 
 	void process()
@@ -430,6 +657,10 @@ namespace speedreflect::underground2
 
         init_vectors();
 		load_globalb_settings(globalb_path);
-        utils::jump(0x00516402, detour_preset_rides);
+        
+        utils::jump(0x00532DEB, detour_gps_ples);
+        utils::jump(0x00532414, detour_event_behavior);
+        utils::jump(0x005324FF, detour_car_positions);
+        utils::jump(0x00532553, detour_drift_sets);
 	}
 }

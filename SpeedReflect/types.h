@@ -26,6 +26,7 @@ namespace speedreflect
 
 	enum class bin_block_id : std::uint32_t
 	{
+		preset_rides = 0x00030220,
 		cartypeinfo = 0x00034600,
 		gcareer_races = 0x00034A11,
 		world_shops = 0x00034A12,
