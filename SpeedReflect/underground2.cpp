@@ -55,14 +55,17 @@ namespace speedreflect::underground2
         switch (type)
         {
 
+        case 0: return 3;
         case 2: return 4;
         case 8: return 5;
         case 16: return 3;
         case 52: return 1;
+        case 112: return 3;
         case 113: return 0;
         case 2048: return 2;
         case 2056: return 5;
         case 8208: return 0;
+        case 8216: return 5;
         default: return 0;
         
         }
@@ -356,6 +359,7 @@ namespace speedreflect::underground2
     {
         auto count = static_cast<std::int8_t>(worldcs->size / 0x18);
         std::printf("Located [%d] WorldChallenges...\n", count);
+        if (count == 0) return;
 
         utils::set<std::int8_t>(0x00500E2F, count); // AddUnlockedZone (ShopDataDesc)
         utils::set<std::int8_t>(0x00500E6F, count); // AddUnlockedZone (CareerEventData)
@@ -383,6 +387,7 @@ namespace speedreflect::underground2
 
             auto race_offset = races->get_offset_by_key(lastStageEvent);
             if (race_offset != -1) progress.race_chase(race_offset);
+            else progress.stage_chase(pair.first);
             progress.show_chase(pair.first);
             progress.write_to_table(pair.first);
             progress.clear();
@@ -639,17 +644,6 @@ namespace speedreflect::underground2
         //sponsor_preset_rides.push_back(preset_table.the_doors);
     }
 
-    __declspec(naked) void detour_gps_ples()
-    {
-        __asm
-        {
-
-            push 0x00532E02;
-            retn;
-
-        }
-    }
-
 	void process()
 	{
 		const auto& directory = stdfs::current_path().parent_path();
@@ -658,7 +652,6 @@ namespace speedreflect::underground2
         init_vectors();
 		load_globalb_settings(globalb_path);
         
-        utils::jump(0x00532DEB, detour_gps_ples);
         utils::jump(0x00532414, detour_event_behavior);
         utils::jump(0x005324FF, detour_car_positions);
         utils::jump(0x00532553, detour_drift_sets);

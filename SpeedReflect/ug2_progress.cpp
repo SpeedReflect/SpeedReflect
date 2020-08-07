@@ -65,8 +65,41 @@ namespace speedreflect::underground2
         }
     }
 
+    void ug2_progress::stage_chase(std::uint32_t stage)
+    {
+        if (!(*this->br_)) return;
+
+        for (const auto& pair : this->races_->key_to_offset)
+        {
+
+            this->br_->position(pair.second + 0x37);
+            auto num = this->br_->read_byte();
+
+            if (num == stage)
+            {
+
+                this->br_->position(pair.second + 0x34);
+                auto icon = this->br_->read_byte();
+
+                switch (icon)
+                {
+
+                case 1: ++this->requirement_.req_spon_won; break;
+                case 2: ++this->requirement_.req_url_won; break;
+                case 3: ++this->requirement_.req_reg_won; break;
+                default: break;
+                
+                }
+
+            }
+
+        }
+    }
+
     void ug2_progress::show_chase(std::uint32_t stage)
     {
+        if (!(*this->br_)) return;
+
         for (const auto& pair : this->showcases_->key_to_offset)
         {
 

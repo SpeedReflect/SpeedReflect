@@ -4,7 +4,6 @@
 #include <iostream>
 #include <filesystem>
 #include <unordered_map>
-#include "Memory.h"
 #include "binary_reader.h"
 
 namespace stdfs = std::filesystem;
@@ -43,6 +42,7 @@ namespace speedreflect
 		gcareer_strings = 0x00034A1D,
 		bank_triggers = 0x00034A1E,
 		gcar_unlocks = 0x00034A1F,
+		vinylheader = 0x0003CE01,
 		gcareer = 0x80034A10,
 		vinylsystem = 0x8003CE00,
 	};
@@ -50,8 +50,8 @@ namespace speedreflect
 	struct vector_offset
 	{
 		std::uint32_t binkey;
-		std::uint32_t offset;
-		std::uint32_t size;
+		std::int32_t offset;
+		std::int32_t size;
 	};
 
 	struct block

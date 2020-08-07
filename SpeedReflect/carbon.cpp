@@ -222,57 +222,62 @@ namespace speedreflect::carbon
         utils::jump(0x007B1501, detour_stream_tex);
     }
 
-    bool make_vectable(const stdfs::path& file, vector_offset** vArray, std::uint32_t* vArrayLen)
+    void make_vectors(const stdfs::path& file, std::uint32_t addr_table, std::uint32_t addr_count)
     {
-        if (!stdfs::exists(file)) return false;
+        auto br = binary_reader(file.wstring());
+        if (!br) return;
 
-        FILE* vinyls_file;
-        const auto filename = file.wstring();
-        if (_wfopen_s(&vinyls_file, filename.c_str(), L"rb") || !vinyls_file) return false;
+        std::vector<vector_offset> vec_entries;
 
-        struct _stat32 stat32;
-        if (_wstat32(filename.c_str(), &stat32)) return false;
-
-        std::vector<vector_offset> offset_entries;
-
-        while (ftell(vinyls_file) < stat32.st_size)
+        while (br.position() < br.length())
         {
 
-            const auto offset = static_cast<std::uint32_t>(ftell(vinyls_file));
-            std::uint32_t chunk_id;
-            std::uint32_t chunk_size;
-            fread_s(&chunk_id, 4, 4, 1, vinyls_file);
-            fread_s(&chunk_size, 4, 4, 1, vinyls_file);
-            auto* const chunk_data = static_cast<std::uint8_t*>(calloc(chunk_size, 1));
-
-            if (!chunk_data) return false;
-
-            fread_s(chunk_data, chunk_size, 1, chunk_size, vinyls_file);
-
-            if (chunk_id == 0x8003CE00)
+            auto cur = br.position();
+            auto id = static_cast<bin_block_id>(br.read_uint32());
+            auto size = br.read_int32();
+            
+            if (id == bin_block_id::vinylsystem)
             {
 
-                const unsigned int vinyl_key = *reinterpret_cast<std::uint32_t*>(chunk_data + 0x18);
-                const auto full_chunk_size = chunk_size + 8;
+                while (br.position() < cur + size + 8)
+                {
 
-                offset_entries.push_back(vector_offset{ vinyl_key, offset, full_chunk_size });
+                    auto subid = static_cast<bin_block_id>(br.read_uint32());
+                    auto subsize = br.read_int32();
+
+                    if (subid == bin_block_id::vinylheader)
+                    {
+
+                        br.advance(0x10);
+                        auto key = br.read_uint32();
+                        vec_entries.push_back(vector_offset{ key, cur, (size + 8) });
+                        break;
+
+                    }
+
+                }
 
             }
 
+            br.position(cur + size + 8);
+
         }
 
-        auto new_mem = (vector_offset*)calloc(offset_entries.size(), sizeof(vector_offset));
+        auto total = vec_entries.size();
+        auto table = reinterpret_cast<vector_offset*>(calloc(total, sizeof(vector_offset)));
+        auto ptr = reinterpret_cast<std::uint32_t>(table);
 
-        for (size_t i = 0; i < offset_entries.size(); i++)
+        for (size_t i = 0; i < total; ++i)
         {
 
-            memcpy(&new_mem[i], &offset_entries[i], sizeof(vector_offset));
+            std::memcpy(&table[i], &vec_entries[i], sizeof(vector_offset));
 
         }
 
-        *vArray = new_mem;
-        *vArrayLen = offset_entries.size();
-        return true;
+        utils::set(addr_table, table);
+        utils::set(addr_count, total);
+        std::printf("Writing vector table pointer [0x%08X] to address [0x%08X]\n", ptr, addr_table);
+        std::printf("Writing vector table count [%d] to address [0x%08X]\n", total, addr_count);
     }
 
     void process()
@@ -282,11 +287,11 @@ namespace speedreflect::carbon
         const auto& logos_path = directory / "FRONTEND" / "LOGOS.BIN";
         const auto& globalb_path = directory / "GLOBAL" / "GLOBALB.LZC";
 
-        make_vectable(vinyls_path, reinterpret_cast<vector_offset**>(0x00A7AAD4), reinterpret_cast<std::uint32_t*>(0xA7AAD8));
-        make_vectable(logos_path, reinterpret_cast<vector_offset**>(0x00A71250), reinterpret_cast<std::uint32_t*>(0xA71254));
+        make_vectors(vinyls_path, 0x00A7AAD4, 0x00A7AAD8);
+        make_vectors(logos_path, 0x00A71250, 0x00A71254);
 
-        const unsigned int val = *reinterpret_cast<std::uint32_t*>(0x00A7AAD4);
-        utils::set(0x007CE5DF, val);
+        auto address = *reinterpret_cast<std::uint32_t*>(0x00A7AAD4);
+        utils::set(0x007CE5DF, address);
 
         load_streaming_headers(globalb_path);
     }

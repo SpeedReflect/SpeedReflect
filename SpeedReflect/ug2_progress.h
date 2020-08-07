@@ -67,6 +67,7 @@ namespace speedreflect::underground2
     public:
         ug2_progress(binary_reader* br, block* races, block* showcases);
         void race_chase(std::int32_t offset);
+        void stage_chase(std::uint32_t stage);
         void show_chase(std::uint32_t stage);
         void write_to_table(std::uint32_t stage);
         void clear();
