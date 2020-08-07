@@ -618,7 +618,6 @@ namespace speedreflect::underground2
             br.position(offset + size + 8);
 
         }
-
 	}
 
     void init_vectors()

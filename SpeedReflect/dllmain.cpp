@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "types.h"
 #include "carbon.h"
+#include "mostwanted.h"
 #include "underground2.h"
 
 #pragma warning(disable : 4996)
@@ -38,6 +39,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		{
 
 			std::cout << "Found game: [Need for Speed: Most Wanted]" << std::endl;
+			speedreflect::mostwanted::process();
 			std::cout << "Finished processing: [Need for Speed: Most Wanted]" << std::endl;
 
 		}

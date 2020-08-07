@@ -130,7 +130,9 @@ namespace speedreflect::carbon
         __asm
         {
 
+            pushad;
             call make_geo_writeout;
+            popad;
             push 0x007B14DD;
             retn;
 
@@ -145,7 +147,9 @@ namespace speedreflect::carbon
             test edi, edi;
             jnz quit;
 
+            pushad;
             call make_geo_writeout;
+            popad;
 
         quit:
             push 0x007B14DD;
@@ -159,7 +163,9 @@ namespace speedreflect::carbon
         __asm
         {
 
+            pushad;
             call make_tex_writeout;
+            popad;
             push 0x007B1522;
             retn;
 
