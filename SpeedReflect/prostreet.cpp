@@ -278,7 +278,7 @@ namespace speedreflect::prostreet
         }
 
         auto total = vec_entries.size();
-        auto table = reinterpret_cast<vector_offset*>(calloc(total, 12u));
+        auto table = reinterpret_cast<std::uint8_t*>(calloc(total, 12u));
 
         auto swap = [](vector_offset* x, vector_offset* y) -> void
         {
@@ -305,14 +305,15 @@ namespace speedreflect::prostreet
         }
 
         std::printf("Start vinyl: [0x%08X], Final vinyl: [0x%08X]\n", vec_entries[0].binkey, vec_entries[total - 1].binkey);
+        
         vinylmetadata = reinterpret_cast<std::uint8_t*>(calloc(8 + (total << 3), 1));
         *reinterpret_cast<std::uint32_t*>(vinylmetadata) = (std::uint32_t)bin_block_id::vinylmetadata;
         *reinterpret_cast<std::int32_t*>(vinylmetadata + 4) = total << 3;
 
-        for (size_t i = 0, j = 8; i < total; ++i, j += 8)
+        for (size_t i = 0, j = 8, k = 0; i < total; ++i, j += 8, k += 12)
         {
 
-            std::memcpy(&table[i], &vec_entries[i], 12u);
+            std::memcpy(&table[k], &vec_entries[i], 12u);
             *reinterpret_cast<std::uint32_t*>(vinylmetadata + j) = vec_entries[i].binkey;
             *reinterpret_cast<float*>(vinylmetadata + j + 4) = vec_entries[i].aspect_ratio;
 
