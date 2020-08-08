@@ -19,4 +19,24 @@ namespace speedreflect::utils
 
 		return result;
 	}
+
+	bool is_compressed(binary_reader* br)
+	{
+		auto comp = br->read_uint32();
+		br->advance(-4);
+
+		switch (comp)
+		{
+
+		case 'ZLDJ':
+		case 'FFUH':
+		case 'WWAR':
+		case 'PMOC':
+			return true;
+
+		default:
+			return false;
+
+		}
+	}
 }

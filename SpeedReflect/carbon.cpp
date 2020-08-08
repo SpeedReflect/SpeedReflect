@@ -13,6 +13,13 @@ namespace speedreflect::carbon
     std::vector<std::string> streaming_geo_headers;
     std::vector<std::string> streaming_tex_headers;
 
+    struct vector_offset
+    {
+        std::uint32_t binkey;
+        std::int32_t offset;
+        std::int32_t size;
+    };
+
     struct geometry_headers
     {
         const char* wheels = "CARS\\WHEELS\\GEOMETRY.BIN";
@@ -319,14 +326,14 @@ namespace speedreflect::carbon
 
         binkeys.clear();
 
-        for (int i = 0; i < count; ++i)
+        for (int i = 0, j = 0; i < count; ++i)
         {
 
-            auto pos = &vinylhashtable[vectoroff + ((i + 1) << 3)];
+            auto pos = &vinylhashtable[vectoroff + ((j + 1) << 3)];
             auto entry = *reinterpret_cast<vector_offset*>(ptr + i);
 
             if (binkeys.find(entry.binkey) != binkeys.end()) continue;
-            else binkeys.insert(entry.binkey);
+            else { binkeys.insert(entry.binkey); ++j; }
 
             auto set = vectorentry.get_offset_by_key(entry.binkey);
             *reinterpret_cast<std::uint32_t*>(pos) = entry.binkey;
@@ -344,6 +351,7 @@ namespace speedreflect::carbon
         const auto filename = file.wstring();
         auto br = binary_reader(filename);
         if (!br) return;
+        if (utils::is_compressed(&br)) return;
 
         while (br.position() < br.length())
         {

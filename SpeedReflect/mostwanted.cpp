@@ -121,6 +121,7 @@ namespace speedreflect::mostwanted
         const auto filename = file.wstring();
         auto br = binary_reader(filename);
         if (!br) return;
+        if (utils::is_compressed(&br)) return;
 
         while (br.position() < br.length())
         {

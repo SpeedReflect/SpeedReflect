@@ -8,8 +8,17 @@ namespace speedreflect::prostreet
     auto HandleCarStreamingSolidHeader = (BOOL(__cdecl*)(char*, int, int, short))0x00458070;
     auto eLoadStreamingTexturePack = (BOOL(__cdecl*)(char*, void(__cdecl*)(void*), int, short))0x00459AF0;
 
+    std::uint8_t* vinylmetadata;
     std::vector<std::string> streaming_geo_headers;
     std::vector<std::string> streaming_tex_headers;
+
+    struct vector_offset
+    {
+        std::uint32_t binkey;
+        std::int32_t offset;
+        std::int32_t size;
+        float aspect_ratio;
+    };
 
     struct geometry_headers
     {
@@ -117,6 +126,25 @@ namespace speedreflect::prostreet
         std::printf("Function [make_tex_writeout] ended execution...\n");
     }
 
+    __declspec(naked) void detour_vinylmetadata()
+    {
+        __asm
+        {
+
+            mov eax, 0x00A85234;
+            mov ecx, vinylmetadata;
+            add ecx, 8;
+            mov [eax], ecx;
+            mov eax, 0x00A85238;
+            mov ecx, 0x00A84928;
+            mov ecx, [ecx];
+            mov [eax], ecx;
+            push 0x0076FB81;
+            retn;
+
+        }
+    }
+
     __declspec(naked) void detour_stream_geo()
     {
         __asm
@@ -145,11 +173,47 @@ namespace speedreflect::prostreet
         }
     }
 
-    void load_streaming_headers(const stdfs::path& file)
+    void load_streaming_headers(binary_reader* br, std::int32_t size)
+    {
+        br->advance(8);
+        auto count = (size - 8) / 0xD0;
+
+        for (std::int32_t i = 0; i < count; ++i)
+        {
+
+            auto cname = br->read_string(0x10);
+            br->advance(0x40);
+            auto key = br->read_uint32();
+            br->advance(0x40);
+            auto usage = br->read_int32();
+            br->advance(0x38);
+
+            if (usage == 3)
+            {
+
+                streaming_tex_headers.push_back(cname);
+                streaming_geo_headers.push_back(cname);
+
+            }
+            else if (usage == 4)
+            {
+
+                streaming_geo_headers.push_back(cname);
+
+            }
+
+        }
+
+        utils::jump(0x00755DB0, detour_stream_geo);
+        utils::jump(0x00755BE1, detour_stream_tex);
+    }
+
+    void load_globalb_settings(const stdfs::path& file)
     {
         const auto filename = file.wstring();
         auto br = binary_reader(filename);
         if (!br) return;
+        if (utils::is_compressed(&br)) return;
 
         while (br.position() < br.length())
         {
@@ -161,46 +225,16 @@ namespace speedreflect::prostreet
             if (id == bin_block_id::cartypeinfo)
             {
 
-                br.advance(8);
-                auto count = size / 0xD0;
-
-                for (std::int32_t i = 0; i < count; ++i)
-                {
-
-                    auto cname = br.read_string(0x10);
-                    br.advance(0x40);
-                    auto key = br.read_uint32();
-                    br.advance(0x40);
-                    auto usage = br.read_int32();
-                    br.advance(0x38);
-
-                    if (usage == 3)
-                    {
-
-                        streaming_tex_headers.push_back(cname);
-                        streaming_geo_headers.push_back(cname);
-
-                    }
-                    else if (usage == 4)
-                    {
-
-                        streaming_geo_headers.push_back(cname);
-
-                    }
-
-                }
+                load_streaming_headers(&br, size);
 
             }
 
             br.position(offset + size + 8);
 
         }
-
-        utils::jump(0x00755DB0, detour_stream_geo);
-        utils::jump(0x00755BE1, detour_stream_tex);
     }
 
-    void make_vectors(const stdfs::path& file, std::uint32_t addr_table, std::uint32_t addr_count)
+    void load_vector_tables(const stdfs::path& file)
     {
         auto br = binary_reader(file.wstring());
         if (!br) return;
@@ -228,7 +262,9 @@ namespace speedreflect::prostreet
 
                         br.advance(0x10);
                         auto key = br.read_uint32();
-                        vec_entries.push_back(vector_offset{ key, cur, (size + 8) });
+                        br.advance(8);
+                        auto ratio = br.read_single();
+                        vec_entries.push_back(vector_offset{ key, cur, (size + 8), ratio });
                         break;
 
                     }
@@ -242,20 +278,53 @@ namespace speedreflect::prostreet
         }
 
         auto total = vec_entries.size();
-        auto table = reinterpret_cast<vector_offset*>(calloc(total, sizeof(vector_offset)));
-        auto ptr = reinterpret_cast<std::uint32_t>(table);
+        auto table = reinterpret_cast<vector_offset*>(calloc(total, 12u));
 
-        for (size_t i = 0; i < total; ++i)
+        auto swap = [](vector_offset* x, vector_offset* y) -> void
+        {
+            auto temp = *x;
+            *x = *y;
+            *y = temp;
+        };
+
+        for (size_t i = 0; i < total - 1; i++)
         {
 
-            std::memcpy(&table[i], &vec_entries[i], sizeof(vector_offset));
+            for (size_t j = 0; j < total - i - 1; j++)
+            {
+
+                if (vec_entries[j].binkey > vec_entries[j + 1].binkey)
+                {
+
+                    swap(&vec_entries[j], &vec_entries[j + 1]);
+
+                }
+
+            }
 
         }
 
-        utils::set(addr_table, table);
-        utils::set(addr_count, total);
-        std::printf("Writing vector table pointer [0x%08X] to address [0x%08X]\n", ptr, addr_table);
-        std::printf("Writing vector table count [%d] to address [0x%08X]\n", total, addr_count);
+        std::printf("Start vinyl: [0x%08X], Final vinyl: [0x%08X]\n", vec_entries[0].binkey, vec_entries[total - 1].binkey);
+        vinylmetadata = reinterpret_cast<std::uint8_t*>(calloc(8 + (total << 3), 1));
+        *reinterpret_cast<std::uint32_t*>(vinylmetadata) = (std::uint32_t)bin_block_id::vinylmetadata;
+        *reinterpret_cast<std::int32_t*>(vinylmetadata + 4) = total << 3;
+
+        for (size_t i = 0, j = 8; i < total; ++i, j += 8)
+        {
+
+            std::memcpy(&table[i], &vec_entries[i], 12u);
+            *reinterpret_cast<std::uint32_t*>(vinylmetadata + j) = vec_entries[i].binkey;
+            *reinterpret_cast<float*>(vinylmetadata + j + 4) = vec_entries[i].aspect_ratio;
+
+        }
+
+        utils::set(0x00A84924, table);
+        utils::set(0x00A84928, total);
+        utils::jump(0x0076FB6C, detour_vinylmetadata);
+        std::printf("Located %d unique vinyls...\n", total);
+        std::printf("Writing vector table pointer [0x%08X] to address [0x00A84924]\n", (std::uint32_t)table);
+        std::printf("Writing vector table count [%d] to address [0x00A84928]\n", total);
+        std::printf("Address of new VinylMetaData: [0x%08X]\n", (std::uint32_t)vinylmetadata);
     }
 
 	void process()
@@ -264,7 +333,7 @@ namespace speedreflect::prostreet
         const auto& vinyls_path = directory / "CARS" / "VINYLS" / "VINYLS.BIN";
         const auto& globalb_path = directory / "GLOBAL" / "GLOBALB.LZC";
 
-        make_vectors(vinyls_path, 0x00A84924, 0x00A84928);
-        load_streaming_headers(globalb_path);
+        load_vector_tables(vinyls_path);
+        load_globalb_settings(globalb_path);
 	}
 }

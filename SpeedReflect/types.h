@@ -12,6 +12,8 @@ namespace stdfs = std::filesystem;
 
 namespace speedreflect
 {
+	class binary_reader;
+
 	const std::string empty = "";
 
 	enum class entry_points : std::uint32_t
@@ -51,13 +53,6 @@ namespace speedreflect
 		gcareer = 0x80034A10,
 		vinylsystem = 0x8003CE00,
 		vinylhashtable = 0x8003CE0D,
-	};
-
-	struct vector_offset
-	{
-		std::uint32_t binkey;
-		std::int32_t offset;
-		std::int32_t size;
 	};
 
 	struct block
@@ -100,5 +95,7 @@ namespace speedreflect
 		}
 
 		std::uint32_t bin_hash(const char* hash);
+
+		bool is_compressed(binary_reader* br);
 	}
 }
