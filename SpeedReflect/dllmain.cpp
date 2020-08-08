@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "types.h"
 #include "carbon.h"
+#include "prostreet.h"
 #include "mostwanted.h"
 #include "underground2.h"
 
@@ -47,6 +48,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		{
 			
 			std::cout << "Found game: [Need for Speed: Prostreet]" << std::endl;
+			speedreflect::prostreet::process();
 			std::cout << "Finished processing: [Need for Speed: Prostreet]" << std::endl;
 
 		}

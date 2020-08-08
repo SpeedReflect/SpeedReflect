@@ -1,13 +1,15 @@
 #include "pch.h"
 #include "carbon.h"
+#include <set>
 
 
 
 namespace speedreflect::carbon
 {
-    auto HandleCarStreamingSolidHeader = (BOOL (__cdecl*)(char*, int, int, short))0x0055F670;
+    auto HandleCarStreamingSolidHeader = (BOOL(__cdecl*)(char*, int, int, short))0x0055F670;
     auto eLoadStreamingTexturePack = (BOOL(__cdecl*)(char*, void(__cdecl*)(void*), int, short))0x0055F850;
 
+    std::uint8_t* vinylhashtable;
     std::vector<std::string> streaming_geo_headers;
     std::vector<std::string> streaming_tex_headers;
 
@@ -125,6 +127,21 @@ namespace speedreflect::carbon
         std::printf("Function [make_tex_writeout] ended execution...\n");
     }
 
+    __declspec(naked) void detour_vinylhashtable()
+    {
+        __asm
+        {
+
+            mov eax, 0x00B74D98;
+            mov ebx, vinylhashtable;
+            add ebx, 0x10;
+            mov [eax], ebx;
+            push 0x007C6A6A;
+            retn;
+
+        }
+    }
+
     __declspec(naked) void detour_stream_geo1()
     {
         __asm
@@ -172,7 +189,157 @@ namespace speedreflect::carbon
         }
     }
 
-    void load_streaming_headers(const stdfs::path& file)
+    void load_streaming_headers(binary_reader* br, std::int32_t size)
+    {
+        br->advance(8);
+        auto count = (size - 8) / 0xD0;
+
+        for (std::int32_t i = 0; i < count; ++i)
+        {
+
+            auto cname = br->read_string(0x10);
+            br->advance(0x40);
+            auto key = br->read_uint32();
+            br->advance(0x40);
+            auto usage = br->read_int32();
+            br->advance(0x38);
+
+            if (usage == 3)
+            {
+
+                streaming_tex_headers.push_back(cname);
+                streaming_geo_headers.push_back(cname);
+
+            }
+            else if (usage == 4)
+            {
+
+                streaming_geo_headers.push_back(cname);
+
+            }
+
+        }
+
+        utils::jump(0x007B1880, detour_stream_geo1);
+        utils::jump(0x007B14BB, detour_stream_geo2);
+        utils::jump(0x007B1501, detour_stream_tex);
+    }
+
+    void load_vinyl_table(binary_reader* br, std::int32_t size)
+    {
+        auto ptr = *reinterpret_cast<vector_offset**>(0x00A7AAD4);
+        auto count = *reinterpret_cast<std::int32_t*>(0x00A7AAD8);
+        auto last = br->position() + size;
+
+        auto hashheader = block(bin_block_id::vinylhashheader);
+        auto carentries = block(bin_block_id::vinylcarentries);
+        auto floatmatrix = block(bin_block_id::vinylfloatmatrix);
+        auto vectorentry = block(bin_block_id::vinylvectorentry);
+
+        while (br->position() < last)
+        {
+
+            auto cur = br->position();
+            auto id = static_cast<bin_block_id>(br->read_uint32());
+            auto len = br->read_int32();
+
+            switch (id)
+            {
+            case bin_block_id::vinylhashheader:
+                hashheader.offset = cur;
+                hashheader.size = len;
+                hashheader.lastpos = hashheader.offset + hashheader.size;
+                break;
+
+            case bin_block_id::vinylcarentries:
+                carentries.offset = cur;
+                carentries.size = len;
+                carentries.lastpos = hashheader.offset + hashheader.size;
+                break;
+
+            case bin_block_id::vinylfloatmatrix:
+                floatmatrix.offset = cur;
+                floatmatrix.size = len;
+                floatmatrix.lastpos = hashheader.offset + hashheader.size;
+                break;
+
+            case bin_block_id::vinylvectorentry:
+                for (std::int32_t i = 0; i < (len >> 3); ++i)
+                {
+
+                    auto key = br->read_uint32();
+                    auto set = br->read_uint32();
+                    vectorentry.key_to_offset[key] = set;
+
+                }
+                break;
+
+            default:
+                break;
+
+            }
+
+            br->advance(len);
+
+        }
+
+        std::set<std::uint32_t> binkeys;
+
+        for (int i = 0; i < count; ++i)
+        {
+
+            auto entry = *reinterpret_cast<vector_offset*>(ptr + i);
+            binkeys.insert(entry.binkey);
+
+        }
+
+        std::int32_t headoff = 8;
+        std::int32_t caroff = headoff + 8 + hashheader.size;
+        std::int32_t floatoff = caroff + 8 + carentries.size;
+        std::int32_t vectoroff = floatoff + 8 + floatmatrix.size;
+        std::int32_t total = vectoroff + 8 + (binkeys.size() << 3);
+
+        vinylhashtable = reinterpret_cast<std::uint8_t*>(calloc(total, 1));
+        *reinterpret_cast<std::uint32_t*>(vinylhashtable) = (std::uint32_t)bin_block_id::vinylhashtable;
+        *reinterpret_cast<std::int32_t*>(vinylhashtable + 4) = total - 8;
+
+        br->position(hashheader.offset);
+        br->read(&vinylhashtable[headoff], hashheader.size + 8);
+        br->position(carentries.offset);
+        br->read(&vinylhashtable[caroff], carentries.size + 8);
+        br->position(floatmatrix.offset);
+        br->read(&vinylhashtable[floatoff], floatmatrix.size + 8);
+        
+        *reinterpret_cast<std::uint8_t**>(&vinylhashtable[headoff + 0x10]) = &vinylhashtable[caroff + 8];
+        *reinterpret_cast<std::uint8_t**>(&vinylhashtable[headoff + 0x14]) = &vinylhashtable[floatoff + 8];
+        *reinterpret_cast<std::uint32_t*>(&vinylhashtable[headoff + 0x1C]) = binkeys.size();
+        *reinterpret_cast<std::uint8_t**>(&vinylhashtable[headoff + 0x20]) = &vinylhashtable[vectoroff + 8];
+        *reinterpret_cast<std::uint32_t*>(&vinylhashtable[vectoroff]) = (std::uint32_t)bin_block_id::vinylvectorentry;
+        *reinterpret_cast<std::int32_t*>(&vinylhashtable[vectoroff + 4]) = binkeys.size() << 3;
+
+        binkeys.clear();
+
+        for (int i = 0; i < count; ++i)
+        {
+
+            auto pos = &vinylhashtable[vectoroff + ((i + 1) << 3)];
+            auto entry = *reinterpret_cast<vector_offset*>(ptr + i);
+
+            if (binkeys.find(entry.binkey) != binkeys.end()) continue;
+            else binkeys.insert(entry.binkey);
+
+            auto set = vectorentry.get_offset_by_key(entry.binkey);
+            *reinterpret_cast<std::uint32_t*>(pos) = entry.binkey;
+            *reinterpret_cast<std::uint32_t*>(pos + 4) = set;
+
+        }
+
+        utils::jump(0x007C6A5C, detour_vinylhashtable);
+        std::printf("Located %d unique vinyls...\n", binkeys.size());
+        std::printf("Address of new VinylHashTable: [0x%08X]\n", (std::uint32_t)vinylhashtable);
+    }
+
+    void load_globalb_settings(const stdfs::path& file)
     {
         const auto filename = file.wstring();
         auto br = binary_reader(filename);
@@ -188,44 +355,19 @@ namespace speedreflect::carbon
             if (id == bin_block_id::cartypeinfo)
             {
 
-                br.advance(8);
-                auto count = size / 0xD0;
+                load_streaming_headers(&br, size);
 
-                for (std::int32_t i = 0; i < count; ++i)
-                {
+            }
+            else if (id == bin_block_id::vinylhashtable)
+            {
 
-                    auto cname = br.read_string(0x10);
-                    br.advance(0x40);
-                    auto key = br.read_uint32();
-                    br.advance(0x40);
-                    auto usage = br.read_int32();
-                    br.advance(0x38);
-
-                    if (usage == 3)
-                    {
-
-                        streaming_tex_headers.push_back(cname);
-                        streaming_geo_headers.push_back(cname);
-
-                    }
-                    else if (usage == 4)
-                    {
-
-                        streaming_geo_headers.push_back(cname);
-
-                    }
-
-                }
+                load_vinyl_table(&br, size);
 
             }
 
             br.position(offset + size + 8);
 
         }
-
-        utils::jump(0x007B1880, detour_stream_geo1);
-        utils::jump(0x007B14BB, detour_stream_geo2);
-        utils::jump(0x007B1501, detour_stream_tex);
     }
 
     void make_vectors(const stdfs::path& file, std::uint32_t addr_table, std::uint32_t addr_count)
@@ -295,10 +437,6 @@ namespace speedreflect::carbon
 
         make_vectors(vinyls_path, 0x00A7AAD4, 0x00A7AAD8);
         make_vectors(logos_path, 0x00A71250, 0x00A71254);
-
-        auto address = *reinterpret_cast<std::uint32_t*>(0x00A7AAD4);
-        utils::set(0x007CE5DF, address);
-
-        load_streaming_headers(globalb_path);
+        load_globalb_settings(globalb_path);
     }
 }

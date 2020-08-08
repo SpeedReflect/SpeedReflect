@@ -43,8 +43,14 @@ namespace speedreflect
 		bank_triggers = 0x00034A1E,
 		gcar_unlocks = 0x00034A1F,
 		vinylheader = 0x0003CE01,
+		vinylhashheader = 0x0003CE0E,
+		vinylcarentries = 0x0003CE0F,
+		vinylfloatmatrix = 0x0003CE10,
+		vinylvectorentry = 0x0003CE11,
+		vinylmetadata = 0x0003CE13,
 		gcareer = 0x80034A10,
 		vinylsystem = 0x8003CE00,
+		vinylhashtable = 0x8003CE0D,
 	};
 
 	struct vector_offset
