@@ -59,8 +59,6 @@ namespace speedreflect::prostreet
 
     void make_geo_writeout()
     {
-        std::printf("Function [make_geo_writeout] has been called...\n");
-
         HandleCarStreamingSolidHeader((char*)geometry_table.group01, 0, 0, 0);
         HandleCarStreamingSolidHeader((char*)geometry_table.group02, 0, 0, 0);
         HandleCarStreamingSolidHeader((char*)geometry_table.group03, 0, 0, 0);
@@ -82,19 +80,13 @@ namespace speedreflect::prostreet
             const auto& bin = "CARS\\" + header + "\\GEOMETRY.BIN";
             auto ptr = (char*)bin.c_str();
 
-            std::printf("Loading file [%s]...\n", bin.c_str());
             HandleCarStreamingSolidHeader(ptr, 0, 0, 0);
-            std::printf("Finished loading file [%s]\n", bin.c_str());
 
         }
-
-        std::printf("Function [make_geo_writeout] ended execution...\n");
     }
 
     void make_tex_writeout()
     {
-        std::printf("Function [make_tex_writeout] has been called...\n");
-
         eLoadStreamingTexturePack((char*)texture_table.textures, 0, 0, 0);
         eLoadStreamingTexturePack((char*)texture_table.spoiler, 0, 0, 0);
         eLoadStreamingTexturePack((char*)texture_table.exhaust, 0, 0, 0);
@@ -117,13 +109,9 @@ namespace speedreflect::prostreet
             const auto& bin = "CARS\\" + header + "\\TEXTURES.BIN";
             auto ptr = (char*)bin.c_str();
 
-            std::printf("Loading file [%s]...\n", bin.c_str());
             eLoadStreamingTexturePack(ptr, 0, 0, 0);
-            std::printf("Finished loading file [%s]\n", bin.c_str());
 
         }
-
-        std::printf("Function [make_tex_writeout] ended execution...\n");
     }
 
     __declspec(naked) void detour_vinylmetadata()
@@ -303,8 +291,6 @@ namespace speedreflect::prostreet
             }
 
         }
-
-        std::printf("Start vinyl: [0x%08X], Final vinyl: [0x%08X]\n", vec_entries[0].binkey, vec_entries[total - 1].binkey);
         
         vinylmetadata = reinterpret_cast<std::uint8_t*>(calloc(8 + (total << 3), 1));
         *reinterpret_cast<std::uint32_t*>(vinylmetadata) = (std::uint32_t)bin_block_id::vinylmetadata;
@@ -322,10 +308,6 @@ namespace speedreflect::prostreet
         utils::set(0x00A84924, table);
         utils::set(0x00A84928, total);
         utils::jump(0x0076FB6C, detour_vinylmetadata);
-        std::printf("Located %d unique vinyls...\n", total);
-        std::printf("Writing vector table pointer [0x%08X] to address [0x00A84924]\n", (std::uint32_t)table);
-        std::printf("Writing vector table count [%d] to address [0x00A84928]\n", total);
-        std::printf("Address of new VinylMetaData: [0x%08X]\n", (std::uint32_t)vinylmetadata);
     }
 
 	void process()

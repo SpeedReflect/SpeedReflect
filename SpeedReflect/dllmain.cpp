@@ -6,8 +6,6 @@
 #include "mostwanted.h"
 #include "underground2.h"
 
-#pragma warning(disable : 4996)
-
 
 
 BOOL APIENTRY DllMain( HMODULE hModule,
@@ -22,49 +20,33 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		auto nt = (IMAGE_NT_HEADERS*)(base + dos->e_lfanew);
 		auto entry = base + nt->OptionalHeader.AddressOfEntryPoint + (0x400000 - base);
 
-		AllocConsole();
-		std::freopen("CONOUT$", "w", stdout);
-		std::freopen("CONIN$", "r", stdin);
-		char c;
-		std::cin >> c;
 
 		if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::carbon))
 		{
 			
-			std::cout << "Found game: [Need for Speed: Carbon]" << std::endl;
 			speedreflect::carbon::process();
-			std::cout << "Finished processing: [Need for Speed: Carbon]" << std::endl;
 
 		}
 		else if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::mostwanted))
 		{
 
-			std::cout << "Found game: [Need for Speed: Most Wanted]" << std::endl;
 			speedreflect::mostwanted::process();
-			std::cout << "Finished processing: [Need for Speed: Most Wanted]" << std::endl;
 
 		}
 		else if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::prostreet))
 		{
 			
-			std::cout << "Found game: [Need for Speed: Prostreet]" << std::endl;
 			speedreflect::prostreet::process();
-			std::cout << "Finished processing: [Need for Speed: Prostreet]" << std::endl;
 
 		}
 		else if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::underground1))
 		{
 
-			std::cout << "Found game: [Need for Speed: Underground 1]" << std::endl;
-			std::cout << "Finished processing: [Need for Speed: Underground 1]" << std::endl;
-
 		}
 		else if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::underground2))
 		{
 
-			std::cout << "Found game: [Need for Speed: Underground 2]" << std::endl;
 			speedreflect::underground2::process();
-			std::cout << "Finished processing: [Need for Speed: Underground 2]" << std::endl;
 
 		}
 		else

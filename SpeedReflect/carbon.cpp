@@ -67,8 +67,6 @@ namespace speedreflect::carbon
 
     void make_geo_writeout()
     {
-        std::printf("Function [make_geo_writeout] has been called...\n");
-
         HandleCarStreamingSolidHeader((char*)geometry_table.wheels, 0, 0, 0);
         HandleCarStreamingSolidHeader((char*)geometry_table.wheels2, 0, 0, 0);
         HandleCarStreamingSolidHeader((char*)geometry_table.wheels3, 0, 0, 0);
@@ -94,19 +92,13 @@ namespace speedreflect::carbon
             const auto& bin = "CARS\\" + header + "\\GEOMETRY.BIN";
             auto ptr = (char*)bin.c_str();
 
-            std::printf("Loading file [%s]...\n", bin.c_str());
             HandleCarStreamingSolidHeader(ptr, 0, 0, 0);
-            std::printf("Finished loading file [%s]\n", bin.c_str());
 
         }
-
-        std::printf("Function [make_geo_writeout] ended execution...\n");
     }
 
     void make_tex_writeout()
     {
-        std::printf("Function [make_tex_writeout] has been called...\n");
-
         eLoadStreamingTexturePack((char*)texture_table.textures, 0, 0, 0);
         eLoadStreamingTexturePack((char*)texture_table.spoiler, 0, 0, 0);
         eLoadStreamingTexturePack((char*)texture_table.exhaust, 0, 0, 0);
@@ -125,13 +117,9 @@ namespace speedreflect::carbon
             const auto& bin = "CARS\\" + header + "\\TEXTURES.BIN";
             auto ptr = (char*)bin.c_str();
 
-            std::printf("Loading file [%s]...\n", bin.c_str());
             eLoadStreamingTexturePack(ptr, 0, 0, 0);
-            std::printf("Finished loading file [%s]\n", bin.c_str());
 
         }
-
-        std::printf("Function [make_tex_writeout] ended execution...\n");
     }
 
     __declspec(naked) void detour_vinylhashtable()
@@ -286,7 +274,7 @@ namespace speedreflect::carbon
 
             }
 
-            br->advance(len);
+            br->position(cur + len + 8);
 
         }
 
@@ -342,8 +330,6 @@ namespace speedreflect::carbon
         }
 
         utils::jump(0x007C6A5C, detour_vinylhashtable);
-        std::printf("Located %d unique vinyls...\n", binkeys.size());
-        std::printf("Address of new VinylHashTable: [0x%08X]\n", (std::uint32_t)vinylhashtable);
     }
 
     void load_globalb_settings(const stdfs::path& file)
@@ -432,8 +418,14 @@ namespace speedreflect::carbon
 
         utils::set(addr_table, table);
         utils::set(addr_count, total);
-        std::printf("Writing vector table pointer [0x%08X] to address [0x%08X]\n", ptr, addr_table);
-        std::printf("Writing vector table count [%d] to address [0x%08X]\n", total, addr_count);
+    }
+
+    void unlock_memory_files()
+    {
+        // don't use memory files.
+        utils::set<std::uint8_t>(0x006B6A51, 0xEB); // InGameMemoryFile
+        utils::set<std::uint8_t>(0x006B6D4F, 0xEB); // GlobalMemoryFile
+        utils::set<std::uint8_t>(0x006B7044, 0xEB); // GlobalMemoryFile
     }
 
     void process()
@@ -446,5 +438,6 @@ namespace speedreflect::carbon
         make_vectors(vinyls_path, 0x00A7AAD4, 0x00A7AAD8);
         make_vectors(logos_path, 0x00A71250, 0x00A71254);
         load_globalb_settings(globalb_path);
+        //unlock_memory_files();
     }
 }

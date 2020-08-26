@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>E:\NFS\Need for Speed Underground 2\scripts</OutDir>
+    <OutDir>E:\NFS\Need for Speed Carbon\scripts</OutDir>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -81,7 +81,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>E:\NFS\Need for Speed Underground 2\scripts</OutDir>
+    <OutDir>E:\NFS\Need for Speed Carbon\scripts</OutDir>
     <TargetExt>.asi</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -167,6 +167,7 @@
     <ClInclude Include="mostwanted.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="prostreet.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="ug2_progress.h" />
     <ClInclude Include="underground2.h" />
@@ -186,6 +187,9 @@
     <ClCompile Include="types.cpp" />
     <ClCompile Include="ug2_progress.cpp" />
     <ClCompile Include="underground2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="SpeedReflect.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

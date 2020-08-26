@@ -29,8 +29,6 @@ namespace speedreflect::mostwanted
 
     void make_pack_writeout()
     {
-        std::printf("Function [make_pack_writeout] has been called...\n");
-
         eLoadStreamingTexturePack((char*)texture_table.textures, 0, 0, 0);
         eLoadStreamingTexturePack((char*)texture_table.spoiler, 0, 0, 0);
 
@@ -40,9 +38,7 @@ namespace speedreflect::mostwanted
             const auto& bin = "CARS\\" + header + "\\TEXTURES.BIN";
             auto ptr = (char*)bin.c_str();
 
-            std::printf("Loading file [%s]...\n", bin.c_str());
             eLoadStreamingTexturePack(ptr, 0, 0, 0);
-            std::printf("Finished loading file [%s]\n", bin.c_str());
 
         }
 
@@ -59,13 +55,9 @@ namespace speedreflect::mostwanted
             const auto& bin = "CARS\\" + header + "\\GEOMETRY.BIN";
             auto ptr = (char*)bin.c_str();
 
-            std::printf("Loading file [%s]...\n", bin.c_str());
             eLoadStreamingSolidPack(ptr, 0, 0, 0);
-            std::printf("Finished loading file [%s]\n", bin.c_str());
 
         }
-
-        std::printf("Function [make_pack_writeout] ended execution...\n");
     }
 
     __declspec(naked) void detour_stream_packs()

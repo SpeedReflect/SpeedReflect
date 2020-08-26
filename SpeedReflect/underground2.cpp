@@ -12,12 +12,7 @@ namespace speedreflect::underground2
     auto eUnloadStreamingSolidPack = (int(__cdecl*)(char*, void(*)(unsigned), unsigned))0x004941F0;
     auto eHibernateStreamingSolidPack = (int(__cdecl*)(char*))0x0048DAE0;
     auto eUnhibernateStreamingSolidPack = (int(__cdecl*)(char*))0x0048DC60;
-    auto DetermineStartingPositions = (void(__cdecl*)(int))0x005264A0;
-    auto GetTrackInfo = (char*(__cdecl*)(int))0x005D3E40;
     
-    std::int8_t event_behavior_type = 0;
-    std::int32_t temp;
-
     std::vector<std::string> streaming_geo_headers;
     std::vector<std::string> streaming_tex_headers;
     std::vector<std::string> sponsor_preset_rides;
@@ -50,40 +45,15 @@ namespace speedreflect::underground2
         const char* rachel = "DDAY_PLAYER_CAR";
     } preset_table;
 
-    std::int8_t GetEventBehaviorType(std::int32_t type)
-    {
-        switch (type)
-        {
-
-        case 0: return 3;
-        case 2: return 4;
-        case 8: return 5;
-        case 16: return 3;
-        case 52: return 1;
-        case 112: return 3;
-        case 113: return 0;
-        case 2048: return 2;
-        case 2056: return 5;
-        case 8208: return 0;
-        case 8216: return 5;
-        default: return 0;
-        
-        }
-    }
-
     void make_geo_writeout(int choice)
     {
-        std::printf("Current executed handle streaming choice: [%d]\n", choice);
-
         if (choice == 1)
         {
 
             for (const auto& header : streaming_geo_headers)
             {
 
-                std::printf("Loading file [%s]...\n", header.c_str());
                 eLoadStreamingSolidPack((char*)header.c_str(), 0, 0, 0);
-                std::printf("Finished loading file [%s]\n", header.c_str());
 
             }
 
@@ -94,9 +64,7 @@ namespace speedreflect::underground2
             for (const auto& header : streaming_geo_headers)
             {
 
-                std::printf("Loading file [%s]...\n", header.c_str());
                 eUnloadStreamingSolidPack((char*)header.c_str(), 0, 0);
-                std::printf("Finished loading file [%s]\n", header.c_str());
 
             }
 
@@ -107,9 +75,7 @@ namespace speedreflect::underground2
             for (const auto& header : streaming_geo_headers)
             {
 
-                std::printf("Loading file [%s]...\n", header.c_str());
                 eHibernateStreamingSolidPack((char*)header.c_str());
-                std::printf("Finished loading file [%s]\n", header.c_str());
 
             }
 
@@ -120,9 +86,7 @@ namespace speedreflect::underground2
             for (const auto& header : streaming_geo_headers)
             {
 
-                std::printf("Loading file [%s]...\n", header.c_str());
                 eUnhibernateStreamingSolidPack((char*)header.c_str());
-                std::printf("Finished loading file [%s]\n", header.c_str());
 
             }
 
@@ -132,9 +96,7 @@ namespace speedreflect::underground2
     void make_progress_writeout(char* career, char* stats)
     {
         auto stage = *reinterpret_cast<std::int32_t*>(career + 0x7AF8);
-        std::printf("FillStatistics buildup - current stage: [%d]\n", stage);
         auto req = *reinterpret_cast<std::int32_t*>(0x007F7BB4 + stage * 0x10);
-        std::printf("FillStatistics buildup - required DVD won: [%d]\n", req);
         *reinterpret_cast<std::int32_t*>(stats + 0x94) = req;
         *reinterpret_cast<float*>(stats + 0x30) = 0.0F;
     }
@@ -142,8 +104,6 @@ namespace speedreflect::underground2
     std::int32_t make_preset_writeout(int* fePlayerCarDB)
     {
         std::int32_t result = 0; // max rides = 12
-
-        std::printf("Writing [%d] preset rides to offset [0x%08X]\n", sponsor_preset_rides.size(), (std::uint32_t)fePlayerCarDB);
 
         for (const auto& ride : sponsor_preset_rides)
         {
@@ -166,143 +126,6 @@ namespace speedreflect::underground2
         }
 
         return result;
-    }
-
-    void custom_event_behavior(char* race)
-    {
-        char* track = GetTrackInfo(*reinterpret_cast<std::int32_t*>(0x0089E7A0));
-
-        auto key = *(std::uint32_t*)(race + 8);
-        auto id = *reinterpret_cast<std::uint16_t*>(track + 0x8A);
-        auto type = *reinterpret_cast<std::int32_t*>(track + 0x94);
-        auto icon = *reinterpret_cast<std::uint8_t*>(race + 0x34);
-        auto behavior = GetEventBehaviorType(type);
-        bool equal;
-
-        std::printf("Launching Event - BinKey: [0x%08X], TrackID: [%d], Behavior: [%d], Icon: [%d]\n", key, id, behavior, icon);
-
-        auto byte_89E7E0 = *reinterpret_cast<std::int8_t*>(0x0089E7E0);
-        auto byte_89E7E3 = *reinterpret_cast<std::int8_t*>(0x0089E7E3);
-        auto byte_89E7D8 = *reinterpret_cast<std::int8_t*>(0x0089E7D8);
-        auto byte_89E7D9 = *reinterpret_cast<std::int8_t*>(0x0089E7D9);
-
-        if (/* icon == 2 || */ (*reinterpret_cast<std::int8_t*>(0x0089E7E0) = 1, behavior))
-            *reinterpret_cast<std::int8_t*>(0x0089E7E0) = 0;
-        
-        if (/* icon == 2 || */ (equal = behavior == 2, *reinterpret_cast<std::int8_t*>(0x0089E7E3) = 1, !equal))
-            *reinterpret_cast<std::int8_t*>(0x0089E7E3) = 0;
-        
-        if (/* icon == 2 || */ (equal = behavior == 4, *reinterpret_cast<std::int8_t*>(0x0089E7D8) = 1, !equal))
-            *reinterpret_cast<std::int8_t*>(0x0089E7D8) = 0;
-        
-        if (/* icon == 2 || */ (equal = behavior == 5, *reinterpret_cast<std::int8_t*>(0x0089E7D9) = 1, !equal))
-            *reinterpret_cast<std::int8_t*>(0x0089E7D9) = 0;
-
-        *reinterpret_cast<std::int8_t*>(0x0089E7E1) = icon == 2;
-        *reinterpret_cast<std::int32_t*>(0x0089E804) = *(race + 0x7D);
-
-        switch (behavior)
-        {
-
-        case 0: case 1: case 3: temp = 0; break;
-        case 2: temp = 3; break;
-        case 4: temp = 1; break;
-        case 5: temp = 2; break;
-        default: temp = 0; break;
-        
-        }
-
-        event_behavior_type = behavior;
-    }
-
-    void custom_car_positions()
-    {
-        switch (event_behavior_type)
-        {
-
-        case 0:
-        case 1:
-        case 4:
-            DetermineStartingPositions(3);
-            break;
-
-        case 2:
-        case 5:
-            DetermineStartingPositions(2);
-            break;
-        
-        case 3:
-            DetermineStartingPositions(1);
-            break;
-        
-        default:
-            break;
-
-        }
-    }
-
-    void custom_drift_sets()
-    {
-        if (event_behavior_type == 5)
-        {
-
-            *reinterpret_cast<std::int32_t*>(0x0083AA74) = 4;
-        
-        }
-        else if (*reinterpret_cast<std::int32_t*>(0x0083AA74) == 4)
-        {
-        
-            *reinterpret_cast<std::int32_t*>(0x0083AA74) = 3;
-        
-        }
-    }
-
-    __declspec(naked) void detour_event_behavior()
-    {
-        __asm
-        {
-
-            pushad;
-            push esi;
-            call custom_event_behavior;
-            add esp, 4;
-            popad;
-            mov edi, temp;
-            mov temp, 0;
-            mov eax, 0x0083A9D8;
-            mov eax, [eax];
-            push 0x00532419;
-            retn;
-
-        }
-    }
-
-    __declspec(naked) void detour_car_positions()
-    {
-        __asm
-        {
-
-            pushad;
-            call custom_car_positions;
-            popad;
-            push 0x00532521;
-            retn;
-
-        }
-    }
-
-    __declspec(naked) void detour_drift_sets()
-    {
-        __asm
-        {
-
-            pushad;
-            call custom_drift_sets;
-            popad;
-            push 0x00532578;
-            retn;
-
-        }
     }
 
     __declspec(naked) void detour_stream_geo()
@@ -357,21 +180,17 @@ namespace speedreflect::underground2
 
     void init_world_cs(block* worldcs)
     {
-        auto count = static_cast<std::int8_t>(worldcs->size / 0x18);
-        std::printf("Located [%d] WorldChallenges...\n", count);
-        if (count == 0) return;
-
-        utils::set<std::int8_t>(0x00500E2F, count); // AddUnlockedZone (ShopDataDesc)
-        utils::set<std::int8_t>(0x00500E6F, count); // AddUnlockedZone (CareerEventData)
-        utils::set<std::int8_t>(0x00500EB0, count); // AddUnlockedZone
-        utils::set<std::int8_t>(0x00500F0B, count); // GetNextUnlockedTriggerZone
-        utils::set<std::int8_t>(0x00500F1F, count); // GetNextUnlockedTriggerZone
-        utils::set<std::int8_t>(0x0053345B, count); // PlayerCareerState::RecalcUnlockedZones
-        utils::set<std::int8_t>(0x005334BB, count); // PlayerCareerState::RecalcUnlockedZones
-        utils::set<std::int8_t>(0x0053352A, count); // PlayerCareerState::RecalcUnlockedZones
-        utils::set<std::int8_t>(0x0053355B, count); // PlayerCareerState::RecalcUnlockedZones
-        utils::set<std::int8_t>(0x0053362B, count); // PlayerCareerState::RecalcUnlockedZones
-        utils::set<std::int32_t>(0x00500F38, (std::int32_t)count); // Reset
+        //utils::set<std::int8_t>(0x00500E2F, 0x7F); // AddUnlockedZone (ShopDataDesc)
+        //utils::set<std::int8_t>(0x00500E6F, 0x7F); // AddUnlockedZone (CareerEventData)
+        //utils::set<std::int8_t>(0x00500EB0, 0x7F); // AddUnlockedZone
+        //utils::set<std::int8_t>(0x00500F0B, 0x7F); // GetNextUnlockedTriggerZone
+        //utils::set<std::int8_t>(0x00500F1F, 0x7F); // GetNextUnlockedTriggerZone
+        //utils::set<std::int8_t>(0x0053345B, 0x7F); // PlayerCareerState::RecalcUnlockedZones
+        //utils::set<std::int8_t>(0x005334BB, 0x7F); // PlayerCareerState::RecalcUnlockedZones
+        //utils::set<std::int8_t>(0x0053352A, 0x7F); // PlayerCareerState::RecalcUnlockedZones
+        //utils::set<std::int8_t>(0x0053355B, 0x7F); // PlayerCareerState::RecalcUnlockedZones
+        //utils::set<std::int8_t>(0x0053362B, 0x7F); // PlayerCareerState::RecalcUnlockedZones
+        //utils::set<std::int32_t>(0x00500F38, (std::int32_t)0x7F); // Reset
     }
 
     void init_progress_stats(binary_reader* br, block* stages, block* races, block* showcases)
@@ -402,7 +221,6 @@ namespace speedreflect::underground2
         auto last = stages->get_offset_by_key(5);
         br->position(last + 0x28);
         auto lastStageEvent = br->read_uint32();
-        std::printf("Last career event: [0x%08X]\n", lastStageEvent);
 
         utils::set<std::uint32_t>(0x00513AD4, lastStageEvent); // PlayerCareerState::CalcShowPostRaceMovie
         utils::set<std::uint32_t>(0x00513ADB, lastStageEvent); // PlayerCareerState::CalcShowPostRaceMovie
@@ -447,8 +265,6 @@ namespace speedreflect::underground2
     void load_preset_rides(binary_reader* br, std::int32_t size)
     {
         auto count = size / 0x338;
-
-        std::printf("Located [%d] preset rides...\n", count);
 
         int is_in_fe[8] = { 0x431440, 0x8B3090, 0x8B33D0, 0x8B3710, 0x8D85A0, 0x8D88E0, 0x8D8C20, 0x93D348 };
 
@@ -496,7 +312,6 @@ namespace speedreflect::underground2
         auto worldcs = block(bin_block_id::world_challenges);
 
         auto offset = br->position();
-        std::printf("GCareer - Size: [0x%08X], Offset: [0x%08X]\n", size, offset);
 
         while (br->position() < offset + size)
         {
@@ -504,8 +319,6 @@ namespace speedreflect::underground2
             auto id = static_cast<bin_block_id>(br->read_uint32());
             auto len = br->read_int32();
             auto cur = br->position();
-
-            std::printf("Located ID [0x%08X] with offset [0x%08X] and size [0x%08X]\n", static_cast<std::int32_t>(id), cur, len);
 
             switch (id)
             {
@@ -541,11 +354,6 @@ namespace speedreflect::underground2
 
         }
 
-        races.print();
-        stages.print();
-        showcases.print();
-        worldcs.print();
-
         for (std::int32_t i = races.offset; i < races.lastpos; i += 0x88)
         {
 
@@ -572,10 +380,6 @@ namespace speedreflect::underground2
             stages.key_to_offset[key] = i;
 
         }
-
-        std::printf("Located [%d] GCareerRaces...\n", races.key_to_offset.size());
-        std::printf("Located [%d] GCareerStages...\n", stages.key_to_offset.size());
-        std::printf("Located [%d] GShowcases...\n", showcases.key_to_offset.size());
 
         init_world_cs(&worldcs);
         init_last_event(br, &stages);
@@ -651,9 +455,5 @@ namespace speedreflect::underground2
 
         init_vectors();
 		load_globalb_settings(globalb_path);
-        
-        utils::jump(0x00532414, detour_event_behavior);
-        utils::jump(0x005324FF, detour_car_positions);
-        utils::jump(0x00532553, detour_drift_sets);
 	}
 }

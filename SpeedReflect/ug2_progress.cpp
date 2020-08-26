@@ -121,13 +121,9 @@ namespace speedreflect::underground2
     void ug2_progress::write_to_table(std::uint32_t stage)
     {
         std::uint32_t address = 0x007F7BA8 + stage * 0x10;
-        std::printf("Stage [%d], RequiredRegRacesWon: [%d] - address [0x%08X]\n", stage, this->requirement_.req_reg_won, address + 0x0);
         utils::set<std::int32_t>(address + 0x0, this->requirement_.req_reg_won);
-        std::printf("Stage [%d], RequiredSponRacesWon: [%d] - address [0x%08X]\n", stage, this->requirement_.req_spon_won, address + 0x4);
         utils::set<std::int32_t>(address + 0x4, this->requirement_.req_spon_won);
-        std::printf("Stage [%d], RequiredURLRacesWon: [%d] - address [0x%08X]\n", stage, this->requirement_.req_url_won, address + 0x8);
         utils::set<std::int32_t>(address + 0x8, this->requirement_.req_url_won);
-        std::printf("Stage [%d], RequiredDVDRacesWon: [%d] - address [0x%08X]\n", stage, this->requirement_.req_dvd_won, address + 0xC);
         utils::set<std::int32_t>(address + 0xC, this->requirement_.req_dvd_won);
     }
 }

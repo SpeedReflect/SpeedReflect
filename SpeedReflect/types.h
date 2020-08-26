@@ -71,10 +71,6 @@ namespace speedreflect
 			if (result == this->key_to_offset.end()) return -1;
 			else return result->second;
 		}
-		void print()
-		{
-			std::printf("ID: [0x%08X] | Size: [0x%08X] | Offset: [0x%08X]\n", static_cast<std::int32_t>(this->id), this->size, this->offset);
-		}
 	};
 
 	namespace utils
