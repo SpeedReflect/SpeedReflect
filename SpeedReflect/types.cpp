@@ -32,6 +32,7 @@ namespace speedreflect::utils
 		case 'FFUH':
 		case 'WWAR':
 		case 'PMOC':
+		case 'KPFR':
 			return true;
 
 		default:

@@ -170,6 +170,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="ug2_progress.h" />
+    <ClInclude Include="undercover.h" />
     <ClInclude Include="underground2.h" />
   </ItemGroup>
   <ItemGroup>
@@ -186,6 +187,7 @@
     <ClCompile Include="prostreet.cpp" />
     <ClCompile Include="types.cpp" />
     <ClCompile Include="ug2_progress.cpp" />
+    <ClCompile Include="undercover.cpp" />
     <ClCompile Include="underground2.cpp" />
   </ItemGroup>
   <ItemGroup>
