@@ -6,7 +6,7 @@
 
 namespace speedreflect::carbon
 {
-    auto HandleCarStreamingSolidHeader = (BOOL(__cdecl*)(char*, int, int, short))0x0055F670;
+    auto eLoadStreamingSolidPack = (BOOL(__cdecl*)(char*, int, int, short))0x0055F670;
     auto eLoadStreamingTexturePack = (BOOL(__cdecl*)(char*, void(__cdecl*)(void*), int, short))0x0055F850;
 
     std::uint8_t* vinylhashtable;
@@ -67,24 +67,24 @@ namespace speedreflect::carbon
 
     void make_geo_writeout()
     {
-        HandleCarStreamingSolidHeader((char*)geometry_table.wheels, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.wheels2, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.wheels3, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.wheels4, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.wheels5, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.wheels6, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_as2, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_carerra, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_carerra_as2, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_hatch, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_hatch_as2, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_porsches, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_porsches_as2, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_custom, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.spoiler_custom_as2, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.roof_scoop, 0, 0, 0);
-        HandleCarStreamingSolidHeader((char*)geometry_table.exhaust, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.wheels, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.wheels2, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.wheels3, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.wheels4, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.wheels5, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.wheels6, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_as2, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_carerra, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_carerra_as2, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_hatch, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_hatch_as2, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_porsches, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_porsches_as2, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_custom, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.spoiler_custom_as2, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.roof_scoop, 0, 0, 0);
+        eLoadStreamingSolidPack((char*)geometry_table.exhaust, 0, 0, 0);
 
         for (const auto& header : streaming_geo_headers)
         {
@@ -92,7 +92,7 @@ namespace speedreflect::carbon
             const auto& bin = "CARS\\" + header + "\\GEOMETRY.BIN";
             auto ptr = (char*)bin.c_str();
 
-            HandleCarStreamingSolidHeader(ptr, 0, 0, 0);
+            eLoadStreamingSolidPack(ptr, 0, 0, 0);
 
         }
     }

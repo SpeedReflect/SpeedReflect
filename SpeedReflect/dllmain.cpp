@@ -3,6 +3,7 @@
 #include "types.h"
 #include "carbon.h"
 #include "prostreet.h"
+#include "undercover.h"
 #include "mostwanted.h"
 #include "underground2.h"
 
@@ -37,6 +38,12 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 		{
 			
 			speedreflect::prostreet::process();
+
+		}
+		else if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::undercover))
+		{
+
+			speedreflect::undercover::process();
 
 		}
 		else if (entry == static_cast<std::uint32_t>(speedreflect::entry_points::underground1))
